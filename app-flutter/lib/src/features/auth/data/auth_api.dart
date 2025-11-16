@@ -1,21 +1,20 @@
+import '../../../config/env.dart';
 import '../../../core/network/api_client.dart';
 
 class AuthAPI {
-  Future<Map<String, dynamic>> login(String correo, String password) async {
-    final result = await apiClient.post(
+
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    return await apiClient.post(
       "/auth/login",
       {
-        "correo": correo,
+        "email": email,
         "password": password,
       },
     );
-
-    return result;
   }
 
   Future<Map<String, dynamic>> me() async {
-    final result = await apiClient.get("/auth/me");
-    return result;
+    return await apiClient.get("/auth/me");
   }
 }
 
