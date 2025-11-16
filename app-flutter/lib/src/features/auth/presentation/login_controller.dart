@@ -13,8 +13,8 @@ class LoginController {
 
       final res = await authAPI.login(email, pass);
 
-      if (res['ok'] == true) {
-        // guardar token en apiClient
+      // El backend devuelve: { token: "...", user: {...} }
+      if (res.containsKey('token')) {
         apiClient.setToken(res['token']);
         return true;
       }

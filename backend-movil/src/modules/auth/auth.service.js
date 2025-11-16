@@ -1,9 +1,11 @@
+// backend-movil/src/modules/auth/auth.service.js
+
 import prisma from '../../core/prisma.js';
 import bcrypt from 'bcryptjs';
-import { signToken } from '../../core/auth.js';
+import { signToken, verifyToken } from '../../core/auth.js';
 
 export async function login(correo, password) {
-  const user = await prisma.usuario.findFirst({
+  const user = await prisma.Usuario.findFirst({
     where: {
       correo,
       estado: true,
@@ -22,6 +24,7 @@ export async function login(correo, password) {
   const token = signToken({ id: user.id, correo: user.correo });
 
   return {
+    ok: true,
     token,
     user: {
       id: user.id,
@@ -32,7 +35,6 @@ export async function login(correo, password) {
   };
 }
 
-
 export async function me(token) {
   if (!token) {
     const error = new Error('Token requerido');
@@ -42,7 +44,7 @@ export async function me(token) {
 
   const payload = verifyToken(token);
 
-  const user = await prisma.usuario.findUnique({
+  const user = await prisma.Usuario.findUnique({
     where: { id: payload.id },
   });
 

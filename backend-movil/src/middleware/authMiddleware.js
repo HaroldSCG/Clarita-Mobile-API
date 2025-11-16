@@ -1,6 +1,7 @@
 // backend-movil/src/middleware/authMiddleware.js
+
 import { verifyToken } from '../core/auth.js';
-import { prisma } from '../core/prisma.js';
+import prisma from '../core/prisma.js';
 
 export async function authMiddleware(req, res, next) {
   const header = req.headers.authorization;
@@ -16,12 +17,11 @@ export async function authMiddleware(req, res, next) {
     return res.status(401).json({ message: 'Token inválido o expirado' });
   }
 
-  // Verifica que el usuario exista y esté activo
-  const user = await prisma.usuario.findUnique({
-    where: { id: decoded.id, estado: true },
+  const user = await prisma.Usuario.findUnique({
+    where: { id: decoded.id },
   });
 
-  if (!user) {
+  if (!user || !user.estado) {
     return res.status(401).json({ message: 'Usuario no encontrado o inactivo' });
   }
 
