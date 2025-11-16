@@ -1,13 +1,12 @@
-import '../../../config/env.dart';
 import '../../../core/network/api_client.dart';
+import '../../../config/env.dart';
 
 class AuthAPI {
-
-  Future<Map<String, dynamic>> login(String email, String password) async {
+  Future<Map<String, dynamic>> login(String correo, String password) async {
     return await apiClient.post(
       "/auth/login",
       {
-        "email": email,
+        "correo": correo,
         "password": password,
       },
     );
