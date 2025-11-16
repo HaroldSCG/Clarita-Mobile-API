@@ -1,0 +1,99 @@
+# ================================
+#   GLOBAL CONFIG (repo completo)
+# ================================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.temp
+*.bak
+*.old
+
+# ======================================
+#   BACKEND Node.js / Express / Prisma
+# ======================================
+
+# Node modules
+backend-movil/node_modules/
+*/node_modules/
+
+# Environment files
+backend-movil/.env
+backend-movil/.env.local
+backend-movil/.env.production
+backend-movil/.env.development
+backend-movil/.env.test
+
+# Prisma generated client
+backend-movil/prisma/generated/
+backend-movil/prisma/dev.db
+backend-movil/prisma/dev.db-journal
+
+# Build and cache
+backend-movil/dist/
+backend-movil/build/
+backend-movil/.cache/
+backend-movil/.eslintcache
+
+# Logs
+backend-movil/npm-debug.log*
+backend-movil/yarn-debug.log*
+backend-movil/yarn-error.log*
+
+# Vercel output
+backend-movil/.vercel/
+
+# ======================================
+#   FLUTTER / DART (app-flutter)
+# ======================================
+
+# Flutter build
+app-flutter/build/
+app-flutter/.dart_tool/
+app-flutter/.packages
+app-flutter/.flutter-plugins
+app-flutter/.flutter-plugins-dependencies
+app-flutter/ios/Pods/
+app-flutter/ios/.symlinks/
+app-flutter/android/.gradle/
+app-flutter/android/.idea/
+app-flutter/android/local.properties
+app-flutter/pubspec.lock
+
+# Ignore sensitive Flutter env
+app-flutter/.env
+app-flutter/.env.local
+app-flutter/android/key.properties
+app-flutter/android/app/*.keystore
+
+# Crash and Debug
+app-flutter/flutter_*.log
+app-flutter/*.iml
+
+# ======================================
+#   SYSTEM / EDITOR
+# ======================================
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.idea/
+*.swp
+*.swo
+
+# ======================================
+#   TEMP / DUMPS / LARGE FILES
+# ======================================
+
+# Backup auto-generado
+*.bak
+*.dump
+*.sql
+*.sqlite
+*.tar
+*.zip
+*.7z
+
+# Imágenes muy grandes (si se agregan por error)
+*/*.psd
+*/*.ai
+*/*.tiff

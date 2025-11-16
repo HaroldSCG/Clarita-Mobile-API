@@ -1,0 +1,379 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                      Int                    @id @default(autoincrement())
+  nombre                  String
+  apellido                String?
+  telefono                String?
+  foto                    String?
+  correo                  String                 @unique
+  passwordHash            String
+  rol                     String                 @default("vendedor")
+  estado                  Boolean                @default(true)
+  creadoEn                DateTime               @default(now())
+  actualizadoEn           DateTime               @default(now()) @updatedAt
+  bitacoras               Bitacora[]
+  camionesAsignados       Camion[]               @relation("ConductorCamion")
+  entregasAsignadas       Entrega[]              @relation("EntregaConductor")
+  mantenimientos          MantenimientoCamion[]
+  movimientos             MovimientoInventario[]
+  pedidosVendedor         Pedido[]               @relation("VendedorPedido")
+  aprobacionesCombustible RegistroCombustible[]  @relation("AprobadorCombustible")
+  registrosCombustible    RegistroCombustible[]  @relation("ConductorCombustible")
+  rutasAsignadas          Ruta[]                 @relation("RutaConductor")
+  roles                   UsuarioRol[]
+}
+
+model Bitacora {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  accion    String
+  fecha     DateTime @default(now())
+  ip        String?
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+}
+
+model Rol {
+  id          Int          @id @default(autoincrement())
+  nombre      String       @unique
+  descripcion String?
+  permisos    RolPermiso[]
+  usuarios    UsuarioRol[]
+}
+
+model Permiso {
+  id          Int          @id @default(autoincrement())
+  nombre      String       @unique
+  descripcion String?
+  roles       RolPermiso[]
+}
+
+model RolPermiso {
+  id        Int     @id @default(autoincrement())
+  rolId     Int
+  permisoId Int
+  permiso   Permiso @relation(fields: [permisoId], references: [id])
+  rol       Rol     @relation(fields: [rolId], references: [id])
+}
+
+model UsuarioRol {
+  id        Int     @id @default(autoincrement())
+  usuarioId Int
+  rolId     Int
+  activo    Boolean @default(true)
+  rol       Rol     @relation(fields: [rolId], references: [id])
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
+
+  @@unique([usuarioId, rolId])
+}
+
+model Modulo {
+  id            Int      @id @default(autoincrement())
+  nombre        String   @unique
+  habilitado    Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+}
+
+model Categoria {
+  id          Int        @id @default(autoincrement())
+  nombre      String     @unique
+  descripcion String?
+  activa      Boolean    @default(true)
+  creadoEn    DateTime   @default(now())
+  productos   Producto[]
+}
+
+model Proveedor {
+  id            Int                    @id @default(autoincrement())
+  nombre        String
+  contacto      String?
+  telefono      String?
+  email         String?
+  direccion     String?
+  activo        Boolean                @default(true)
+  creadoEn      DateTime               @default(now())
+  actualizadoEn DateTime               @updatedAt
+  movimientos   MovimientoInventario[]
+  productos     Producto[]
+}
+
+model Producto {
+  id             Int                    @id @default(autoincrement())
+  codigo         String                 @unique
+  nombre         String
+  descripcion    String?
+  categoriaId    Int
+  proveedorId    Int?
+  precioCompra   Float?
+  precioVenta    Float
+  stockMinimo    Int                    @default(0)
+  stockActual    Int                    @default(0)
+  stockReservado Int                    @default(0)
+  unidadMedida   String                 @default("unidad")
+  activo         Boolean                @default(true)
+  creadoEn       DateTime               @default(now())
+  actualizadoEn  DateTime               @updatedAt
+  detallesPedido DetallePedido[]
+  lotes          LoteProducto[]
+  movimientos    MovimientoInventario[]
+  categoria      Categoria              @relation(fields: [categoriaId], references: [id])
+  proveedor      Proveedor?             @relation(fields: [proveedorId], references: [id])
+}
+
+model MovimientoInventario {
+  id             Int           @id @default(autoincrement())
+  productoId     Int
+  tipo           String
+  cantidad       Int
+  precioUnitario Float?
+  motivo         String?
+  referencia     String?
+  usuarioId      Int
+  proveedorId    Int?
+  loteId         Int?
+  stockAnterior  Int?
+  stockNuevo     Int?
+  observaciones  String?
+  fecha          DateTime      @default(now())
+  lote           LoteProducto? @relation(fields: [loteId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  producto       Producto      @relation(fields: [productoId], references: [id], onUpdate: NoAction)
+  proveedor      Proveedor?    @relation(fields: [proveedorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  usuario        Usuario       @relation(fields: [usuarioId], references: [id], onUpdate: NoAction)
+}
+
+model LoteProducto {
+  id                    Int                    @id @default(autoincrement())
+  productoId            Int
+  numeroLote            String
+  cantidad              Int
+  cantidadDisponible    Int
+  cantidadReservada     Int                    @default(0)
+  fechaVencimiento      DateTime
+  fechaIngreso          DateTime               @default(now())
+  precioCompra          Float?
+  observaciones         String?
+  activo                Boolean                @default(true)
+  creadoEn              DateTime               @default(now())
+  actualizadoEn         DateTime               @updatedAt
+  producto              Producto               @relation(fields: [productoId], references: [id])
+  movimientosInventario MovimientoInventario[]
+  movimientosLote       MovimientoLote[]
+
+  @@unique([productoId, numeroLote])
+}
+
+model MovimientoLote {
+  id               Int          @id @default(autoincrement())
+  loteId           Int
+  tipo             String
+  cantidad         Int
+  cantidadAnterior Int
+  cantidadNueva    Int
+  motivo           String?
+  usuarioId        Int
+  fecha            DateTime     @default(now())
+  referencia       String?
+  lote             LoteProducto @relation(fields: [loteId], references: [id])
+}
+
+model Cliente {
+  id            Int      @id @default(autoincrement())
+  nombre        String
+  apellido      String?
+  telefono      String?
+  email         String?
+  direccion     String?
+  nit           String?
+  esCf          Boolean  @default(false)
+  activo        Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+  pedidos       Pedido[]
+}
+
+model Pedido {
+  id                      Int             @id @default(autoincrement())
+  clienteId               Int?
+  vendedorId              Int
+  tipo                    String          @default("pedido")
+  estado                  String          @default("pendiente")
+  subtotal                Float
+  descuento               Float           @default(0)
+  impuestos               Float           @default(0)
+  total                   Float
+  observaciones           String?
+  fechaPedido             DateTime        @default(now())
+  fechaEntrega            DateTime?
+  direccionEntrega        String?
+  telefonoEntrega         String?
+  personaRecibe           String?
+  metodoPago              String?
+  cambio                  Float?
+  clienteNombre           String?
+  clienteNit              String?
+  requiereEntrega         Boolean         @default(true)
+  prioridadEntrega        String          @default("normal")
+  ventanaEntrega          String?
+  instruccionesEspeciales String?
+  creadoEn                DateTime        @default(now())
+  actualizadoEn           DateTime        @updatedAt
+  detalles                DetallePedido[]
+  entregas                Entrega[]
+  cliente                 Cliente?        @relation(fields: [clienteId], references: [id])
+  vendedor                Usuario         @relation("VendedorPedido", fields: [vendedorId], references: [id])
+}
+
+model DetallePedido {
+  id             Int      @id @default(autoincrement())
+  pedidoId       Int
+  productoId     Int
+  cantidad       Int
+  precioUnitario Float
+  subtotal       Float
+  pedido         Pedido   @relation(fields: [pedidoId], references: [id])
+  producto       Producto @relation(fields: [productoId], references: [id])
+}
+
+model Camion {
+  id                     Int                   @id @default(autoincrement())
+  placa                  String                @unique
+  marca                  String
+  modelo                 String
+  ano                    Int                   @map("año")
+  color                  String?
+  numeroChasis           String?               @unique
+  numeroMotor            String?
+  capacidadCarga         Float
+  kilometraje            Int                   @default(0)
+  fechaCompra            DateTime?
+  costoCompra            Float?
+  conductorId            Int?
+  estado                 String                @default("activo")
+  fechaUltimaRevision    DateTime?
+  fechaProximaRevision   DateTime?
+  seguro                 String?
+  fechaVencimientoSeguro DateTime?
+  observaciones          String?
+  activo                 Boolean               @default(true)
+  creadoEn               DateTime              @default(now())
+  actualizadoEn          DateTime              @updatedAt
+  conductor              Usuario?              @relation("ConductorCamion", fields: [conductorId], references: [id])
+  entregas               Entrega[]             @relation("EntregaCamion")
+  mantenimientos         MantenimientoCamion[]
+  registrosCombustible   RegistroCombustible[]
+  rutas                  Ruta[]                @relation("RutaCamion")
+}
+
+model RegistroCombustible {
+  id                 Int       @id @default(autoincrement())
+  camionId           Int
+  conductorId        Int
+  fecha              DateTime  @default(now())
+  fechaCarga         DateTime
+  litros             Float
+  precio             Float
+  precioPorLitro     Float
+  gasolinera         String
+  ubicacion          String?
+  kilometrajeInicial Int
+  kilometrajeFinal   Int
+  horasUso           Float?
+  facturaFoto        String?
+  facturaNumero      String?
+  comentarios        String?
+  estado             String    @default("pendiente")
+  fechaAprobacion    DateTime?
+  aprobadoPor        Int?
+  motivoRechazo      String?
+  creadoEn           DateTime  @default(now())
+  actualizadoEn      DateTime  @updatedAt
+  aprobador          Usuario?  @relation("AprobadorCombustible", fields: [aprobadoPor], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  camion             Camion    @relation(fields: [camionId], references: [id], onDelete: Cascade)
+  conductor          Usuario   @relation("ConductorCombustible", fields: [conductorId], references: [id], onUpdate: NoAction)
+}
+
+model MantenimientoCamion {
+  id                   Int       @id @default(autoincrement())
+  camionId             Int
+  fecha                DateTime  @default(now())
+  tipo                 String
+  descripcion          String
+  costo                Float?
+  taller               String?
+  kilometraje          Int?
+  proximoMantenimiento DateTime?
+  repuestos            String?
+  observaciones        String?
+  facturaFoto          String?
+  usuarioId            Int
+  creadoEn             DateTime  @default(now())
+  actualizadoEn        DateTime  @updatedAt
+  camion               Camion    @relation(fields: [camionId], references: [id], onDelete: Cascade)
+  usuario              Usuario   @relation(fields: [usuarioId], references: [id], onUpdate: NoAction)
+}
+
+model Ruta {
+  id                  Int       @id @default(autoincrement())
+  nombre              String
+  fecha               DateTime
+  camionId            Int
+  conductorId         Int
+  estado              String    @default("planificada")
+  fechaInicio         DateTime?
+  fechaFin            DateTime?
+  kilometrajeInicial  Int?
+  kilometrajeFinal    Int?
+  combustibleInicial  Float?
+  combustibleFinal    Float?
+  distanciaTotal      Float?
+  tiempoTotal         Int?
+  numeroEntregas      Int       @default(0)
+  entregasCompletadas Int       @default(0)
+  observaciones       String?
+  creadoEn            DateTime  @default(now())
+  actualizadoEn       DateTime  @updatedAt
+  entregas            Entrega[]
+  camion              Camion    @relation("RutaCamion", fields: [camionId], references: [id], onDelete: Cascade)
+  conductor           Usuario   @relation("RutaConductor", fields: [conductorId], references: [id], onUpdate: NoAction)
+}
+
+model Entrega {
+  id                   Int       @id @default(autoincrement())
+  pedidoId             Int
+  camionId             Int?
+  conductorId          Int?
+  rutaId               Int?
+  fechaAsignacion      DateTime  @default(now())
+  fechaSalida          DateTime?
+  fechaEntregaReal     DateTime?
+  estadoEntrega        String    @default("asignado")
+  ordenRuta            Int       @default(1)
+  latitudDestino       Float?
+  longitudDestino      Float?
+  latitudEntrega       Float?
+  longitudEntrega      Float?
+  distanciaKm          Float?
+  tiempoEstimado       Int?
+  tiempoReal           Int?
+  firmaCliente         String?
+  fotoEntrega          String?
+  observacionesEntrega String?
+  motivoFallo          String?
+  fechaReprogramacion  DateTime?
+  calificacionCliente  Int?
+  comentarioCliente    String?
+  creadoEn             DateTime  @default(now())
+  actualizadoEn        DateTime  @updatedAt
+  camion               Camion?   @relation("EntregaCamion", fields: [camionId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  conductor            Usuario?  @relation("EntregaConductor", fields: [conductorId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  pedido               Pedido    @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  ruta                 Ruta?     @relation(fields: [rutaId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
