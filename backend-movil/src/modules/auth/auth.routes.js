@@ -5,6 +5,14 @@ import * as authService from './auth.service.js';
 const router = Router();
 
 /**
+ * GET /api/mobile/auth/ping
+ * Ruta de prueba para verificar que el backend móvil está funcionando
+ */
+router.get('/ping', (req, res) => {
+  res.json({ ok: true, message: 'API móvil funcionando' });
+});
+
+/**
  * POST /api/mobile/auth/login
  */
 router.post('/login', async (req, res, next) => {

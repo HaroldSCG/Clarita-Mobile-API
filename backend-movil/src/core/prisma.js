@@ -1,6 +1,6 @@
 // backend-movil/src/core/prisma.js
 import { PrismaClient } from '@prisma/client';
-import { env } from './env.js';
+import env from './env.js';
 
 const prisma = new PrismaClient({
   datasources: {
@@ -11,4 +11,4 @@ const prisma = new PrismaClient({
   log: ['error', 'warn'],
 });
 
-export { prisma };
+export default prisma;

@@ -11,9 +11,9 @@ function required(name) {
   return value;
 }
 
-export const env = {
+const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
-  PORT: process.env.PORT || 4000,
+  PORT: Number(process.env.PORT) || 4000,
 
   DATABASE_URL: required('DATABASE_URL'),
   JWT_SECRET: required('JWT_SECRET'),
@@ -21,3 +21,6 @@ export const env = {
   // Para CORS (Flutter)
   CORS_ORIGIN: process.env.CORS_ORIGIN || '*',
 };
+
+// ✔️ La parte que te faltaba
+export default env;

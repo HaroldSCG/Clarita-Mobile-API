@@ -1,12 +1,26 @@
 // backend-movil/src/core/logger.js
-export function logInfo(...args) {
+
+function info(...args) {
   console.log('[INFO]', ...args);
 }
 
-export function logError(...args) {
+function log(...args) {
+  console.log('[LOG]', ...args);
+}
+
+function warn(...args) {
+  console.warn('[WARN]', ...args);
+}
+
+function error(...args) {
   console.error('[ERROR]', ...args);
 }
 
-export function logWarn(...args) {
-  console.warn('[WARN]', ...args);
-}
+const logger = {
+  info,
+  log,
+  warn,
+  error
+};
+
+export default logger;
