@@ -1,3 +1,4 @@
 class AppEnv {
-  static const String apiBaseUrl = "http://10.0.2.2:4000/api/mobile";
+  static const String apiBaseUrl = "https://clarita-mobile-api.vercel.app/api/mobile";
+
 }
