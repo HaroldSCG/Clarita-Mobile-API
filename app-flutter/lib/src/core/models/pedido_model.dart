@@ -1,27 +1,43 @@
 class PedidoModel {
   final int id;
-  final String cliente;
-  final double total;
+  final String codigo;
+  final String clienteNombre;
+  final String direccion;
+  final String nit;
+  final String estado;
+  final String fecha;
 
   PedidoModel({
     required this.id,
-    required this.cliente,
-    required this.total,
+    required this.codigo,
+    required this.clienteNombre,
+    required this.direccion,
+    required this.nit,
+    required this.estado,
+    required this.fecha,
   });
 
-  factory PedidoModel.fromMap(Map<String, dynamic> map) {
+  factory PedidoModel.fromJson(Map<String, dynamic> json) {
     return PedidoModel(
-      id: map['id'],
-      cliente: map['cliente'],
-      total: double.tryParse(map['total'].toString()) ?? 0,
+      id: json['id'] ?? 0,
+      codigo: json['codigo'] ?? "",
+      clienteNombre: json['clienteNombre'] ?? "",
+      direccion: json['direccion'] ?? "",
+      nit: json['nit'] ?? "",
+      estado: json['estado'] ?? "",
+      fecha: json['fecha'] ?? "",
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'cliente': cliente,
-      'total': total,
+      "id": id,
+      "codigo": codigo,
+      "clienteNombre": clienteNombre,
+      "direccion": direccion,
+      "nit": nit,
+      "estado": estado,
+      "fecha": fecha,
     };
   }
 }

@@ -1,21 +1,13 @@
-import 'dart:math';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 class Responsive {
-  final double width;
-  final double height;
-  final double inch;
+  final BuildContext context;
+  Responsive(this.context);
 
-  Responsive(this.width, this.height, this.inch);
+  double get w => MediaQuery.of(context).size.width;
+  double get h => MediaQuery.of(context).size.height;
 
-  factory Responsive.of(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
-    final inch = sqrt(size.width * size.width + size.height * size.height);
-
-    return Responsive(size.width, size.height, inch);
-  }
-
-  double wp(double percent) => width * percent / 100;
-  double hp(double percent) => height * percent / 100;
+  bool get isMobile => w < 600;
+  bool get isTablet => w >= 600 && w < 1024;
+  bool get isDesktop => w >= 1024;
 }

@@ -1,35 +1,35 @@
-import 'package:flutter/material.dart';
-import '../../../core/network/api_client.dart';
-import '../data/auth_api.dart';
+import '../data/auth_repository.dart';
+import '../domain/auth_state.dart';
 
 class LoginController {
-  final emailCtrl = TextEditingController();
-  final passCtrl = TextEditingController();
-
-  Future<bool> login() async {
+  Future<bool> login(String correo, String password) async {
     try {
-      final email = emailCtrl.text.trim();
-      final pass = passCtrl.text.trim();
-
-      final res = await authAPI.login(email, pass);
-
-      // El backend devuelve: { token: "...", user: {...} }
-      if (res.containsKey('token')) {
-        apiClient.setToken(res['token']);
-        return true;
-      }
-
-      return false;
-
+      authState.startLoading();
+      final user = await authRepository.login(correo, password);
+      authState.setUser(user);
+      return true;
     } catch (e) {
-      print("Error login: $e");
+      authState.setError(e.toString());
       return false;
     }
   }
 
-  void dispose() {
-    emailCtrl.dispose();
-    passCtrl.dispose();
+  Future<bool> restore() async {
+    try {
+      final user = await authRepository.restoreSession();
+      if (user != null) {
+        authState.setUser(user);
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void logout() {
+    authRepository.logout();
+    authState.logout();
   }
 }
 

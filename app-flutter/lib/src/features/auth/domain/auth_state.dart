@@ -1,24 +1,28 @@
+import '../../../core/models/user_model.dart';
+
 class AuthState {
-  bool loading;
-  bool loggedIn;
-  Map<String, dynamic>? user;
+  bool loading = false;
+  String? error;
+  UserModel? user;
 
-  AuthState({
-    this.loading = false,
-    this.loggedIn = false,
-    this.user,
-  });
+  void startLoading() {
+    loading = true;
+    error = null;
+  }
 
-  AuthState copyWith({
-    bool? loading,
-    bool? loggedIn,
-    Map<String, dynamic>? user,
-  }) {
-    return AuthState(
-      loading: loading ?? this.loading,
-      loggedIn: loggedIn ?? this.loggedIn,
-      user: user ?? this.user,
-    );
+  void setUser(UserModel u) {
+    user = u;
+    loading = false;
+    error = null;
+  }
+
+  void setError(String message) {
+    error = message;
+    loading = false;
+  }
+
+  void logout() {
+    user = null;
   }
 }
 

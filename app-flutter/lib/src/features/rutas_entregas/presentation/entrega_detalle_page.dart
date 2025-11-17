@@ -1,101 +1,85 @@
 import 'package:flutter/material.dart';
 
-class EntregaDetallePage extends StatelessWidget {
+import '../data/rutas_entregas_api.dart';
+
+class EntregaDetallePage extends StatefulWidget {
   const EntregaDetallePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Recibir entrega enviada desde la pantalla anterior
-    final entrega =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+  State<EntregaDetallePage> createState() => _EntregaDetallePageState();
+}
 
-    if (entrega == null) {
-      return const Scaffold(
-        body: Center(child: Text("Entrega no encontrada")),
-      );
-    }
+class _EntregaDetallePageState extends State<EntregaDetallePage> {
+  Map<String, dynamic>? entrega;
+  bool loading = true;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Entrega #${entrega['id']}"),
-      ),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            Text(
-              "Detalles del Pedido",
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-
-            _detalle("Pedido ID", entrega["pedidoId"]),
-            _detalle("Estado", entrega["estadoEntrega"]),
-            _detalle("Dirección", entrega["direccionEntrega"] ?? "No definida"),
-            _detalle("Persona que recibe", entrega["personaRecibe"] ?? "No definido"),
-            _detalle("Teléfono", entrega["telefonoEntrega"] ?? "No definido"),
-            _detalle("Instrucciones", entrega["instruccionesEspeciales"] ?? "Ninguna"),
-
-            const Divider(height: 40),
-
-            Text(
-              "Ubicación destino",
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-
-            _detalle("Latitud", entrega["latitudDestino"]?.toString() ?? "-"),
-            _detalle("Longitud", entrega["longitudDestino"]?.toString() ?? "-"),
-
-            const Divider(height: 40),
-
-            Text(
-              "Estado de seguimiento",
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-
-            _detalle("Fecha salida", entrega["fechaSalida"] ?? "-"),
-            _detalle("Entrega real", entrega["fechaEntregaReal"] ?? "-"),
-            _detalle("Motivo fallo", entrega["motivoFallo"] ?? "-"),
-
-            const SizedBox(height: 40),
-
-            // Botón para actualizar estado (conectaremos al backend más adelante)
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Función pendiente")),
-                  );
-                },
-                child: const Text("Actualizar estado de entrega"),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  Future<void> cargar(int id) async {
+    final data = await rutasEntregasAPI.getEntregaDetalle(id);
+    entrega = data;
+    loading = false;
+    if (mounted) setState(() {});
   }
 
-  Widget _detalle(String titulo, dynamic valor) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Text(
-            "$titulo: ",
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Expanded(
-            child: Text(valor.toString()),
-          ),
-        ],
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final id = ModalRoute.of(context)?.settings.arguments as int?;
+    if (id != null) cargar(id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Detalle de entrega'),
       ),
+      body: loading
+          ? const Center(child: CircularProgressIndicator())
+          : entrega == null
+              ? const Center(child: Text("No se encontró información"))
+              : Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: ListView(
+                    children: [
+                      Text(
+                        entrega!['cliente'] ?? '',
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      Text(entrega!['direccion'] ?? ''),
+                      const SizedBox(height: 20),
+                      Text("Estado: ${entrega!['estado']}"),
+                      Text("Total: Q${entrega!['total'] ?? 0}"),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "Productos",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      const SizedBox(height: 10),
+                      ...(entrega!['productos'] as List<dynamic>? ?? []).map(
+                        (p) => Card(
+                          color: const Color(0xFF111111),
+                          child: ListTile(
+                            title: Text(
+                              p['nombre'] ?? '',
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            subtitle: Text(
+                              "Cantidad: ${p['cantidad']}",
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                            trailing: Text(
+                              "Q${p['precio']}",
+                              style: const TextStyle(
+                                  color: Colors.pinkAccent, fontSize: 16),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
     );
   }
 }

@@ -1,53 +1,71 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import '../../config/env.dart';
+import 'exceptions.dart';
 
 class ApiClient {
-  String? _token;
+  final String baseUrl = Env.apiBaseUrl;
 
-  void setToken(String token) {
-    _token = token;
-  }
+  Future<dynamic> get(String path) async {
+    final url = Uri.parse("$baseUrl$path");
 
-  Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) async {
-    final url = Uri.parse("${AppEnv.apiBaseUrl}$path");
-
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        if (_token != null) 'Authorization': 'Bearer $_token',
-      },
-      body: jsonEncode(body),
-    );
+    final response = await http
+        .get(url)
+        .timeout(Env.timeout);
 
     return _handleResponse(response);
   }
 
-  Future<Map<String, dynamic>> get(String path) async {
-    final url = Uri.parse("${AppEnv.apiBaseUrl}$path");
+  Future<dynamic> post(String path, Map<String, dynamic> body) async {
+    final url = Uri.parse("$baseUrl$path");
 
-    final response = await http.get(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        if (_token != null) 'Authorization': 'Bearer $_token',
-      },
-    );
+    final response = await http
+        .post(
+          url,
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(body),
+        )
+        .timeout(Env.timeout);
 
     return _handleResponse(response);
   }
 
-  Map<String, dynamic> _handleResponse(http.Response response) {
-    final data =
-        response.body.isEmpty ? <String, dynamic>{} : jsonDecode(response.body);
+  Future<dynamic> put(String path, Map<String, dynamic> body) async {
+    final url = Uri.parse("$baseUrl$path");
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return data;
-    }
+    final response = await http
+        .put(
+          url,
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(body),
+        )
+        .timeout(Env.timeout);
 
-    throw Exception(data['message'] ?? 'Error inesperado');
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> delete(String path) async {
+    final url = Uri.parse("$baseUrl$path");
+
+    final response = await http
+        .delete(url)
+        .timeout(Env.timeout);
+
+    return _handleResponse(response);
+  }
+
+  dynamic _handleResponse(http.Response response) {
+    final status = response.statusCode;
+    final body = response.body.isNotEmpty ? jsonDecode(response.body) : null;
+
+    if (status >= 200 && status < 300) return body;
+
+    if (status == 400) throw BadRequestException(body?["message"]);
+    if (status == 401) throw UnauthorizedException(body?["message"]);
+    if (status == 404) throw NotFoundException(body?["message"]);
+    if (status >= 500) throw ServerException("Error del servidor");
+
+    throw ApiException("Error desconocido");
   }
 }
 

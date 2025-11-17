@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../presentation/rutas_entregas_controller.dart';
+
+import 'rutas_entregas_controller.dart';
 
 class EntregasPage extends StatefulWidget {
   const EntregasPage({super.key});
@@ -9,19 +10,21 @@ class EntregasPage extends StatefulWidget {
 }
 
 class _EntregasPageState extends State<EntregasPage> {
-  Map<String, dynamic>? ruta;
+  int? rutaId;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    ruta = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    cargar();
+
+    rutaId = ModalRoute.of(context)?.settings.arguments as int?;
+    if (rutaId != null) {
+      cargar();
+    }
   }
 
   Future<void> cargar() async {
-    if (ruta == null) return;
-    await rutasEntregasController.cargarEntregas(ruta!['id']);
-    setState(() {});
+    await rutasEntregasController.cargarEntregas(rutaId!);
+    if (mounted) setState(() {});
   }
 
   @override
@@ -30,38 +33,41 @@ class _EntregasPageState extends State<EntregasPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Entregas - Ruta ${ruta?['nombre'] ?? ''}"),
+        title: const Text('Entregas'),
       ),
-      body: c.loadingEntregas
+      body: c.loading
           ? const Center(child: CircularProgressIndicator())
-          : c.errorEntregas != null
-              ? Center(child: Text("Error: ${c.errorEntregas}"))
+          : c.error != null
+              ? Center(child: Text("Error: ${c.error}"))
               : ListView.builder(
+                  padding: const EdgeInsets.all(16),
                   itemCount: c.entregas.length,
                   itemBuilder: (_, i) {
-                    final entrega = c.entregas[i];
+                    final e = c.entregas[i];
 
                     return Card(
+                      color: const Color(0xFF111111),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       child: ListTile(
                         title: Text(
-                          "Entrega #${entrega['id']} - Pedido ${entrega['pedidoId']}",
+                          e['cliente'] ?? 'Cliente',
+                          style: const TextStyle(color: Colors.white),
                         ),
                         subtitle: Text(
-                          "Estado: ${entrega['estadoEntrega']}",
+                          e['direccion'] ?? '',
+                          style: const TextStyle(color: Colors.white54),
                         ),
-                        trailing: Icon(
-                          entrega['estadoEntrega'] == 'entregado'
-                              ? Icons.check_circle
-                              : Icons.local_shipping,
-                          color: entrega['estadoEntrega'] == 'entregado'
-                              ? Colors.green
-                              : Colors.orange,
+                        trailing: Text(
+                          e['estado'] ?? '',
+                          style: const TextStyle(color: Colors.pinkAccent),
                         ),
                         onTap: () {
                           Navigator.pushNamed(
                             context,
                             '/entrega/detalle',
-                            arguments: entrega,
+                            arguments: e['id'],
                           );
                         },
                       ),

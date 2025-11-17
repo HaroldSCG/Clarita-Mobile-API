@@ -1,25 +1,33 @@
-import 'package:sqflite/sqflite.dart';
+
 import '../local_db.dart';
-import '../../../core/models/combustible_model.dart';
+import '../../models/combustible_model.dart';
+import 'package:sqflite/sqflite.dart';
+class CombustibleDAO {
+  Future<void> insert(CombustibleModel c) async {
+    final db = await LocalDB.instance.database;
 
-class CombustibleDao {
-  Future<Database> get _db async => LocalDb.instance.database;
-
-  Future<void> replaceAll(List<CombustibleModel> items) async {
-    final db = await _db;
-
-    await db.delete('combustible');
-
-    for (final item in items) {
-      await db.insert('combustible', item.toMap());
-    }
+    await db.insert(
+      'combustible',
+      {
+        "id": c.id,
+        "camionId": c.camionId,
+        "gasolinera": c.gasolinera,
+        "litros": c.litros,
+        "precio": c.precio,
+        "fechaCarga": c.fechaCarga,
+        "kilometrajeInicial": c.kilometrajeInicial,
+        "kilometrajeFinal": c.kilometrajeFinal,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<List<CombustibleModel>> getAll() async {
-    final db = await _db;
+    final db = await LocalDB.instance.database;
+    final result = await db.query('combustible');
 
-    final rows = await db.query('combustible');
-
-    return rows.map((e) => CombustibleModel.fromMap(e)).toList();
+    return result.map((e) => CombustibleModel.fromJson(e)).toList();
   }
 }
+
+final combustibleDAO = CombustibleDAO();

@@ -1,73 +1,43 @@
+import 'package:flutter/material.dart';
+
 import '../data/rutas_entregas_api.dart';
 
-class RutasEntregasController {
-  // ----- Estado general -----
-  bool loadingRutas = false;
-  String? errorRutas;
-  List<dynamic> rutas = [];
+class RutasEntregasController extends ChangeNotifier {
+  bool loading = false;
+  String? error;
 
-  // ----- Estado entregas -----
-  bool loadingEntregas = false;
-  String? errorEntregas;
-  List<dynamic> entregas = [];
+  List<Map<String, dynamic>> rutas = [];
+  List<Map<String, dynamic>> entregas = [];
 
-  // =====================================================
-  // CARGAR TODAS LAS RUTAS
-  // =====================================================
   Future<void> cargarRutas() async {
-    loadingRutas = true;
-    errorRutas = null;
-
     try {
+      loading = true;
+      error = null;
+      notifyListeners();
+
       final data = await rutasEntregasAPI.getRutas();
-      rutas = data;
+      rutas = data.map((e) => Map<String, dynamic>.from(e)).toList();
     } catch (e) {
-      errorRutas = e.toString();
+      error = e.toString();
+    } finally {
+      loading = false;
+      notifyListeners();
     }
-
-    loadingRutas = false;
   }
 
-  // =====================================================
-  // CARGAR ENTREGAS PARA UNA RUTA
-  // =====================================================
   Future<void> cargarEntregas(int rutaId) async {
-    loadingEntregas = true;
-    errorEntregas = null;
-
     try {
+      loading = true;
+      error = null;
+      notifyListeners();
+
       final data = await rutasEntregasAPI.getEntregasByRuta(rutaId);
-      entregas = data;
+      entregas = data.map((e) => Map<String, dynamic>.from(e)).toList();
     } catch (e) {
-      errorEntregas = e.toString();
-    }
-
-    loadingEntregas = false;
-  }
-
-  // =====================================================
-  // CONFIRMAR ENTREGA
-  // =====================================================
-  Future<bool> confirmarEntrega(int entregaId, Map<String, dynamic> body) async {
-    try {
-      await rutasEntregasAPI.confirmarEntrega(entregaId, body);
-      return true;
-    } catch (e) {
-      errorEntregas = e.toString();
-      return false;
-    }
-  }
-
-  // =====================================================
-  // REPORTAR FALLO
-  // =====================================================
-  Future<bool> reportarFallo(int entregaId, Map<String, dynamic> body) async {
-    try {
-      await rutasEntregasAPI.reportarFallo(entregaId, body);
-      return true;
-    } catch (e) {
-      errorEntregas = e.toString();
-      return false;
+      error = e.toString();
+    } finally {
+      loading = false;
+      notifyListeners();
     }
   }
 }

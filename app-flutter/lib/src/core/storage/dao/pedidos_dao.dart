@@ -3,23 +3,29 @@ import '../local_db.dart';
 import '../../../core/models/pedido_model.dart';
 
 class PedidosDao {
-  Future<Database> get _db async => LocalDb.instance.database;
+  static const tableName = 'pedidos';
 
-  Future<void> replaceAll(List<PedidoModel> items) async {
-    final db = await _db;
+  Future<void> insert(PedidoModel pedido) async {
+    final db = await LocalDB.instance.database;
 
-    await db.delete('pedidos');
-
-    for (final item in items) {
-      await db.insert('pedidos', item.toMap());
-    }
+    await db.insert(
+      tableName,
+      pedido.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<List<PedidoModel>> getAll() async {
-    final db = await _db;
+    final db = await LocalDB.instance.database;
+    final maps = await db.query(tableName);
 
-    final rows = await db.query('pedidos');
+    return maps.map((e) => PedidoModel.fromJson(e)).toList();
+  }
 
-    return rows.map((e) => PedidoModel.fromMap(e)).toList();
+  Future<void> clear() async {
+    final db = await LocalDB.instance.database;
+    await db.delete(tableName);
   }
 }
+
+final pedidosDao = PedidosDao();

@@ -1,7 +1,7 @@
 // backend-movil/src/routes.js
 import { Router } from 'express';
 
-// Importar rutas de módulos
+// módulos
 import authRoutes from './modules/auth/auth.routes.js';
 import usuariosRoutes from './modules/usuarios/usuarios.routes.js';
 import inventarioRoutes from './modules/inventario/inventario.routes.js';
@@ -13,7 +13,6 @@ import syncRoutes from './modules/sync/sync.routes.js';
 
 const router = Router();
 
-// Montar cada grupo de rutas
 router.use('/auth', authRoutes);
 router.use('/usuarios', usuariosRoutes);
 router.use('/inventario', inventarioRoutes);

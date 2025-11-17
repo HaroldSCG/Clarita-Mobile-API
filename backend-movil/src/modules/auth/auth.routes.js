@@ -1,38 +1,37 @@
 // backend-movil/src/modules/auth/auth.routes.js
 import { Router } from 'express';
 import * as authService from './auth.service.js';
+import { success } from '../../core/response.js';
 
 const router = Router();
 
-/**
- * GET /api/mobile/auth/ping
- * Ruta de prueba para verificar que el backend móvil está funcionando
- */
+// GET /api/mobile/auth/ping
 router.get('/ping', (req, res) => {
-  res.json({ ok: true, message: 'API móvil funcionando' });
+  res.json(
+    success(
+      { service: 'auth' },
+      'API móvil funcionando'
+    )
+  );
 });
 
-/**
- * POST /api/mobile/auth/login
- */
+// POST /api/mobile/auth/login
 router.post('/login', async (req, res, next) => {
   try {
     const { correo, password } = req.body;
     const result = await authService.login(correo, password);
-    res.json(result);
+    res.json(success(result, 'Login exitoso'));
   } catch (error) {
     next(error);
   }
 });
 
-/**
- * GET /api/mobile/auth/me
- */
+// GET /api/mobile/auth/me
 router.get('/me', async (req, res, next) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
     const user = await authService.me(token);
-    res.json(user);
+    res.json(success(user, 'Usuario autenticado'));
   } catch (error) {
     next(error);
   }

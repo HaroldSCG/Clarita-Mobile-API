@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../features/auth/presentation/login_controller.dart';
-
+import '../../../config/theme.dart';
+import '../domain/auth_state.dart';
+import '../presentation/login_controller.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,85 +11,86 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final correoCtrl = TextEditingController();
+  final passCtrl = TextEditingController();
   bool loading = false;
-  String? errorMsg;
 
-  Future<void> doLogin() async {
-    setState(() {
-      loading = true;
-      errorMsg = null;
-    });
+  Future<void> _doLogin() async {
+    setState(() => loading = true);
 
-    final ok = await loginController.login();
+    final ok = await loginController.login(
+      correoCtrl.text.trim(),
+      passCtrl.text.trim(),
+    );
 
     if (!mounted) return;
 
-    if (ok) {
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
-      setState(() {
-        errorMsg = "Credenciales incorrectas";
-      });
-    }
-
     setState(() => loading = false);
-  }
 
-  @override
-  void dispose() {
-    loginController.dispose();
-    super.dispose();
+    if (ok) {
+      // Ir al home
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, "/home");
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(authState.error ?? "Error en login")),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(25),
+      backgroundColor: AppColors.background,
+      body: Center(
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          width: 350,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(
-                'assets/images/logo.png',
-                height: 120,
-              ),
-              const SizedBox(height: 30),
-
-              TextField(
-                controller: loginController.emailCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Correo',
-                  border: OutlineInputBorder(),
+              const Text(
+                "Distribuidora Clarita",
+                style: TextStyle(
+                  fontSize: 22,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-
               const SizedBox(height: 20),
 
               TextField(
-                controller: loginController.passCtrl,
-                obscureText: true,
+                controller: correoCtrl,
+                style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  labelText: 'Contraseña',
-                  border: OutlineInputBorder(),
+                  hintText: "Correo",
                 ),
               ),
 
-              if (errorMsg != null) ...[
-                const SizedBox(height: 20),
-                Text(
-                  errorMsg!,
-                  style: const TextStyle(color: Colors.red),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passCtrl,
+                obscureText: true,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: "Contraseña",
                 ),
-              ],
+              ),
 
-              const SizedBox(height: 30),
-
-              ElevatedButton(
-                onPressed: loading ? null : doLogin,
-                child: loading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Iniciar Sesión"),
+              const SizedBox(height: 25),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: loading ? null : _doLogin,
+                  child: loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("Iniciar Sesión"),
+                ),
               ),
             ],
           ),

@@ -1,30 +1,28 @@
-import '../../inventario/data/inventario_api.dart';
-import '../../../core/storage/dao/productos_dao.dart';
+import 'package:flutter/material.dart';
 import '../../../core/models/producto_model.dart';
+import '../data/inventario_api.dart';
 
-class InventarioController {
+class InventarioController extends ChangeNotifier {
+  List<ProductoModel> items = [];
   bool loading = false;
   String? error;
-  List<ProductoModel> productos = [];
 
-  Future<void> cargarProductos() async {
-    loading = true;
-    error = null;
-
+  Future<void> load() async {
     try {
-      final data = await inventarioAPI.getProductos();
+      loading = true;
+      notifyListeners();
+      error = null;
 
-      productos = data
-          .map((e) => ProductoModel.fromMap(e as Map<String, dynamic>))
-          .toList();
+      final data = await inventarioAPI.getAll();
+      items = data.map((e) => ProductoModel.fromJson(e)).toList();
 
-      // guardar local
-      await ProductosDao().replaceAll(productos);
+      loading = false;
+      notifyListeners();
     } catch (e) {
       error = e.toString();
+      loading = false;
+      notifyListeners();
     }
-
-    loading = false;
   }
 }
 

@@ -1,7 +1,14 @@
 // backend-movil/src/middleware/errorMiddleware.js
+import { success } from '../core/response.js';
 
 export function notFoundHandler(req, res, next) {
-  res.status(404).json({ message: 'Ruta no encontrada' });
+  // 404 genérico
+  res.status(404).json({
+    ok: false,
+    message: 'Ruta no encontrada',
+    data: null,
+    timestamp: new Date().toISOString(),
+  });
 }
 
 export function errorHandler(err, req, res, next) {
@@ -12,5 +19,10 @@ export function errorHandler(err, req, res, next) {
     console.error(err);
   }
 
-  res.status(status).json({ message });
+  res.status(status).json({
+    ok: false,
+    message,
+    data: err.extra ?? null,
+    timestamp: new Date().toISOString(),
+  });
 }

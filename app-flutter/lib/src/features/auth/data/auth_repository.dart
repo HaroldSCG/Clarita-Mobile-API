@@ -1,26 +1,42 @@
 import 'auth_api.dart';
 import 'auth_local.dart';
-import '../../../core/network/api_client.dart';
+import '../../../core/models/user_model.dart';
 
 class AuthRepository {
-  Future<bool> login(String correo, String password) async {
-    final result = await authAPI.login(correo, password);
+  Future<UserModel> login(String correo, String password) async {
+    final resp = await authAPI.login(correo, password);
 
-    final token = result["token"];
-    final user = result["user"];
+    if (resp["ok"] != true) {
+      throw resp["message"] ?? "Credenciales inválidas";
+    }
 
-    apiClient.setToken(token);
+    final token = resp["token"];
+    final user = UserModel.fromJson(resp["user"]);
 
-    await authLocal.saveSession(token, user);
-    return true;
+    await authLocal.saveToken(token);
+    await authLocal.saveUser(user.toJson());
+
+    return user;
   }
 
-  Future<Map<String, dynamic>?> loadSession() async {
-    final session = await authLocal.getSession();
-    if (session == null) return null;
+  Future<UserModel?> restoreSession() async {
+    final token = await authLocal.getToken();
+    if (token == null) return null;
 
-    apiClient.setToken(session["token"]);
-    return session;
+    try {
+      final resp = await authAPI.me();
+      if (resp["ok"] == true) {
+        final user = UserModel.fromJson(resp["user"]);
+        await authLocal.saveUser(user.toJson());
+        return user;
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  Future<void> logout() async {
+    await authLocal.deleteToken();
   }
 }
 

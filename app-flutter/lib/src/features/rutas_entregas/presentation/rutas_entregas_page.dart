@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../presentation/rutas_entregas_controller.dart';
+
+import '../../../core/widgets/app_scaffold.dart';
+import 'rutas_entregas_controller.dart';
 
 class RutasEntregasPage extends StatefulWidget {
   const RutasEntregasPage({super.key});
@@ -17,40 +19,48 @@ class _RutasEntregasPageState extends State<RutasEntregasPage> {
 
   Future<void> cargar() async {
     await rutasEntregasController.cargarRutas();
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     final c = rutasEntregasController;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Rutas Asignadas"),
-      ),
-
-      // 👇 AQUI ESTABA EL ERROR: usabas c.loading y c.error
-      body: c.loadingRutas
+    return AppScaffold(
+      title: 'Rutas de entrega',
+      currentRoute: '/rutas',
+      actions: [
+        IconButton(icon: const Icon(Icons.refresh), onPressed: cargar),
+      ],
+      body: c.loading
           ? const Center(child: CircularProgressIndicator())
-          : c.errorRutas != null
-              ? Center(child: Text("Error: ${c.errorRutas}"))
+          : c.error != null
+              ? Center(child: Text("Error: ${c.error}"))
               : ListView.builder(
+                  padding: const EdgeInsets.all(16),
                   itemCount: c.rutas.length,
                   itemBuilder: (_, i) {
                     final ruta = c.rutas[i];
 
                     return Card(
+                      color: const Color(0xFF1A1A1A),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
                       child: ListTile(
-                        title: Text("Ruta #${ruta['id']}  -  ${ruta['nombre']}"),
-                        subtitle: Text(
-                          "Estado: ${ruta['estado']} • Entregas: ${ruta['numeroEntregas']}",
+                        title: Text(
+                          ruta['nombre'] ?? 'Ruta',
+                          style: const TextStyle(color: Colors.white),
                         ),
-                        trailing: const Icon(Icons.arrow_forward_ios),
+                        subtitle: Text(
+                          'Entregas: ${ruta['totalEntregas'] ?? 0}',
+                          style: const TextStyle(color: Colors.white54),
+                        ),
                         onTap: () {
                           Navigator.pushNamed(
                             context,
                             '/rutas/entregas',
-                            arguments: ruta,
+                            arguments: ruta['id'],
                           );
                         },
                       ),

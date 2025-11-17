@@ -1,30 +1,42 @@
-import '../../combustible/data/combustible_api.dart';
-import '../../../core/storage/dao/combustible_dao.dart';
+import 'package:flutter/material.dart';
 import '../../../core/models/combustible_model.dart';
+import '../data/combustible_api.dart';
 
-class CombustibleController {
+class CombustibleController extends ChangeNotifier {
+  List<CombustibleModel> items = [];
   bool loading = false;
   String? error;
-  List<CombustibleModel> lista = [];
 
-  Future<void> cargar() async {
-    loading = true;
-    error = null;
-
+  Future<void> load() async {
     try {
-      final data = await combustibleAPI.getRegistros();
+      loading = true;
+      error = null;
+      notifyListeners();
 
-      lista = data
-          .map((e) => CombustibleModel.fromMap(e as Map<String, dynamic>))
-          .toList();
+      final data = await combustibleAPI.getAll();
 
-      await CombustibleDao().replaceAll(lista);
+      items = data.map((e) => CombustibleModel.fromJson(e)).toList();
 
+      loading = false;
+      notifyListeners();
     } catch (e) {
+      loading = false;
       error = e.toString();
+      notifyListeners();
     }
+  }
 
-    loading = false;
+  Future<bool> registrar(CombustibleModel model) async {
+    try {
+      final resp = await combustibleAPI.create(model.toJson());
+      if (resp["ok"] == true) {
+        await load();
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
   }
 }
 

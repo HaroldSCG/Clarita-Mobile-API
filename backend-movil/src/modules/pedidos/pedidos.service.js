@@ -1,116 +1,52 @@
+// backend-movil/src/modules/pedidos/pedidos.service.js
 import prisma from '../../core/prisma.js';
 
-/**
- * Listado seguro para móvil: pedidos resumidos
- */
-export function list() {
-  return prisma.pedido.findMany({
+export async function listarPedidos() {
+  const pedidos = await prisma.pedido.findMany({
     orderBy: { fechaPedido: 'desc' },
-    select: {
-      id: true,
-      clienteNombre: true,
-      clienteNit: true,
-      total: true,
-      estado: true,
-      fechaPedido: true,
-      actualizadoEn: true,
-      vendedor: {
-        select: {
-          id: true,
-          nombre: true,
-          apellido: true,
-        },
-      },
+    include: {
+      cliente: true,
+      vendedor: true,
     },
   });
+
+  return pedidos.map(p => ({
+    id: p.id,
+    cliente: p.clienteNombre ?? p.cliente?.nombre ?? 'Consumidor Final',
+    estado: p.estado,
+    total: p.total,
+    fecha: p.fechaPedido,
+    vendedor: p.vendedor?.nombre ?? null,
+  }));
 }
 
-/**
- * Pedido detallado
- */
-export function findById(id) {
-  return prisma.pedido.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      clienteNombre: true,
-      clienteNit: true,
-      direccionEntrega: true,
-      telefonoEntrega: true,
-      observaciones: true,
-      fechaPedido: true,
-      fechaEntrega: true,
-      estado: true,
-      total: true,
-      vendedor: {
-        select: {
-          id: true,
-          nombre: true,
-          apellido: true,
-        },
-      },
+export async function obtenerPedido(id) {
+  const pedido = await prisma.pedido.findUnique({
+    where: { id: Number(id) },
+    include: {
+      cliente: true,
+      vendedor: true,
       detalles: {
-        select: {
-          id: true,
-          cantidad: true,
-          precioUnitario: true,
-          subtotal: true,
-          producto: {
-            select: {
-              id: true,
-              nombre: true,
-              unidadMedida: true,
-            },
-          },
-        },
+        include: { producto: true },
       },
-      actualizadoEn: true,
     },
   });
-}
 
-/**
- * Crear pedido y detalles
- */
-export async function create(payload) {
-  const {
-    vendedorId,
-    clienteId,
-    clienteNombre,
-    clienteNit,
-    subtotal,
-    descuento,
-    impuestos,
-    total,
-    detalles = [],
-  } = payload;
+  if (!pedido) return null;
 
-  return prisma.pedido.create({
-    data: {
-      vendedorId,
-      clienteId,
-      clienteNombre,
-      clienteNit,
-      subtotal,
-      descuento: descuento ?? 0,
-      impuestos: impuestos ?? 0,
-      total,
-      detalles: {
-        createMany: {
-          data: detalles.map((d) => ({
-            productoId: d.productoId,
-            cantidad: d.cantidad,
-            precioUnitario: d.precioUnitario,
-            subtotal: d.subtotal,
-          })),
-        },
-      },
-    },
-    select: {
-      id: true,
-      total: true,
-      estado: true,
-      fechaPedido: true,
-    },
-  });
+  return {
+    id: pedido.id,
+    cliente: pedido.clienteNombre ?? pedido.cliente?.nombre ?? 'Consumidor Final',
+    estado: pedido.estado,
+    total: pedido.total,
+    fecha: pedido.fechaPedido,
+    vendedor: pedido.vendedor?.nombre ?? null,
+    detalles: pedido.detalles.map(d => ({
+      productoId: d.productoId,
+      productoNombre: d.producto?.nombre ?? '',
+      cantidad: d.cantidad,
+      precioUnitario: d.precioUnitario,
+      subtotal: d.subtotal,
+    })),
+  };
 }
