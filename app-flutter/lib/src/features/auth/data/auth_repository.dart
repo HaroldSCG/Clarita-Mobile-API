@@ -10,8 +10,17 @@ class AuthRepository {
       throw resp["message"] ?? "Credenciales inválidas";
     }
 
-    final token = resp["token"];
-    final user = UserModel.fromJson(resp["user"]);
+    // Extraer correctamente la estructura del backend
+    final data = resp["data"] ?? {};
+
+    final token = data["token"];
+    final userJson = data["user"];
+
+    if (token == null || userJson == null) {
+      throw "Respuesta inválida del servidor";
+    }
+
+    final user = UserModel.fromJson(userJson);
 
     await authLocal.saveToken(token);
     await authLocal.saveUser(user.toJson());
@@ -25,8 +34,16 @@ class AuthRepository {
 
     try {
       final resp = await authAPI.me();
+
       if (resp["ok"] == true) {
-        final user = UserModel.fromJson(resp["user"]);
+
+        final data = resp["data"] ?? {};
+        final userJson = data["user"];
+
+        if (userJson == null) return null;
+
+        final user = UserModel.fromJson(userJson);
+
         await authLocal.saveUser(user.toJson());
         return user;
       }
