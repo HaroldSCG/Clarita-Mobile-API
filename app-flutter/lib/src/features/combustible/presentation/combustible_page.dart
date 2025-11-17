@@ -23,7 +23,7 @@ class _CombustiblePageState extends State<CombustiblePage> {
     return ChangeNotifierProvider.value(
       value: combustibleController,
       child: Consumer<CombustibleController>(
-        builder: (_, c, _) {
+        builder: (_, c, __) {
           return AppScaffold(
             title: "Combustible",
             body: c.loading
@@ -37,7 +37,7 @@ class _CombustiblePageState extends State<CombustiblePage> {
                     : ListView.builder(
                         padding: const EdgeInsets.all(12),
                         itemCount: c.items.length,
-                        itemBuilder: (_, i) {
+                        itemBuilder: (context, i) {
                           final item = c.items[i];
                           return Card(
                             child: ListTile(
