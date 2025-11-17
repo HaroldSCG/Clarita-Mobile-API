@@ -10,7 +10,7 @@ const app = express();
 
 // Procesar JSON
 app.use(express.json({ limit: '3mb' }));
-
+app.use(express.urlencoded({ extended: true }));
 // CORS (permite tráfico desde el APK y desde tu dominio si lo deseas)
 const allowedOrigins = env.CORS_ORIGIN?.split(',').map(o => o.trim());
 
