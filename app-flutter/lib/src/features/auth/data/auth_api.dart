@@ -3,7 +3,7 @@ import '../../../core/network/api_client.dart';
 class AuthAPI {
   Future<Map<String, dynamic>> login(String correo, String password) async {
     final resp = await apiClient.post(
-      "/api/mobile/auth/login",
+      "/auth/login",
       {
         "correo": correo,
         "password": password,
@@ -13,7 +13,7 @@ class AuthAPI {
   }
 
   Future<Map<String, dynamic>> me() async {
-    return await apiClient.get("/api/mobile/auth/me");
+    return await apiClient.get("/auth/me");
   }
 }
 
